@@ -34,7 +34,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://www.neurocrest.in",   # ✅ Your frontend domain
-        "http://localhost:3000", 
+        "http://localhost:5173", 
     ],        # Allow all origins (frontend access)
     allow_credentials=True,
     allow_methods=["*"],
