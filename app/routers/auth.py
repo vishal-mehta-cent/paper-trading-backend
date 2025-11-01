@@ -1,109 +1,98 @@
 # backend/app/routers/auth.py
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
-import sqlite3
-import jwt  # Decoding Google JWT (signature not verified here — dev-only)
-import requests
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# ✅ Correct database path
-DB_PATH = "paper_trading.db"
+# 🔒 Lockdown config
+ALLOWED_USERS = {
+    "Neurocrest_dev",
+    "Neurocrest_test",
+    "Neurocrest_masum",
+    "Neurocrest_vishal",
+    "Neurocrest_jinal",
+    "Neurocrest_others",
+}
+FIXED_PASSWORD = "neurocrest123"
+CONTACT_MSG = "Please contact on the WhatsApp number: 6358801256"
+
+# (Kept for compatibility with your project structure; not used after lockdown)
+DB_PATH = "/data/paper_trading.db"
+
 
 # 📦 Pydantic models
 class UserIn(BaseModel):
     username: str
     password: str
 
+
 class UpdatePassword(BaseModel):
     username: str
     new_password: str
+
 
 class UpdateEmail(BaseModel):
     username: str
     new_email: str
 
+
 class GoogleToken(BaseModel):
     token: str
 
-# ✅ Login route
+
+# ✅ Login route (locked to allowlist + fixed password)
 @router.post("/login")
 def login(user: UserIn):
-    print("🔑 Login attempt:", user.username, user.password)
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE username = ? AND password = ?", (user.username, user.password))
-    row = cur.fetchone()
-    conn.close()
+    username = (user.username or "").strip()
+    password = user.password or ""
 
-    if row:
-        print("✅ Login success for:", user.username)
-        return {"success": True, "username": user.username}
-    else:
-        print("❌ Invalid credentials:", user.username)
+    print("🔑 Login attempt:", username)
+
+    # Not allowlisted → show WhatsApp number
+    if username not in ALLOWED_USERS:
+        print("⛔ Not allowlisted:", username)
+        return {"success": False, "message": CONTACT_MSG}
+
+    # On allowlist but wrong password
+    if password != FIXED_PASSWORD:
+        print("❌ Wrong password for:", username)
         return {"success": False, "message": "Invalid credentials"}
 
+    # Success
+    print("✅ Login success for:", username)
+    return {"success": True, "username": username}
 
-# ✅ Register route
+
+# 🚫 Register route disabled
 @router.post("/register")
 def register(user: UserIn):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE username = ?", (user.username,))
-    if cur.fetchone():
-        conn.close()
-        return {"success": False, "message": "Username already exists"}
+    print("🚫 Register blocked for:", user.username)
+    return {"success": False, "message": CONTACT_MSG}
 
-    cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user.username, user.password))
-    conn.commit()
-    conn.close()
-    return {"success": True, "message": "User registered successfully"}
 
-# ✅ Update password
+# 🚫 Update password disabled (password is fixed)
 @router.post("/update-password")
 def update_password(data: UpdatePassword):
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cur = conn.cursor()
-        cur.execute("UPDATE users SET password = ? WHERE username = ?", (data.new_password, data.username))
-        conn.commit()
-        conn.close()
-        return {"success": True, "message": "Password updated successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    print("🚫 Update password blocked for:", data.username)
+    return {
+        "success": False,
+        "message": f"Password is fixed and cannot be changed. {CONTACT_MSG}",
+    }
 
-# ✅ Update email (rename username)
+
+# 🚫 Update email/username disabled (user IDs are fixed)
 @router.post("/update-email")
 def update_email(data: UpdateEmail):
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cur = conn.cursor()
-        cur.execute("UPDATE users SET username = ? WHERE username = ?", (data.new_email, data.username))
-        conn.commit()
-        conn.close()
-        return {"success": True, "message": "Email updated successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    print("🚫 Update email blocked for:", data.username)
+    return {
+        "success": False,
+        "message": f"Username/Email changes are disabled. {CONTACT_MSG}",
+    }
 
-# ✅ Google Login route
+
+# 🚫 Google Login disabled (lockdown)
 @router.post("/google-login")
 def google_login(data: GoogleToken):
-    try:
-        idinfo = jwt.decode(data.token, options={"verify_signature": False})
-        email = idinfo.get("email")
-        if not email:
-            raise HTTPException(status_code=400, detail="Invalid token")
-
-        # Auto-register if not present
-        conn = sqlite3.connect(DB_PATH)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE username = ?", (email,))
-        if not cur.fetchone():
-            cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (email, "google"))
-            conn.commit()
-        conn.close()
-
-        return {"success": True, "username": email}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Google login failed: {str(e)}")
+    print("🚫 Google login blocked")
+    return {"success": False, "message": CONTACT_MSG}
