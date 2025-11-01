@@ -62,21 +62,34 @@ app = FastAPI(
 )
 
 # 4) CORS setup
-origins = [
+ALLOWED_ORIGINS = [
+    # Local web dev
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://paper-trading-frontend.vercel.app",
-    "https://www.neurocrest.in",
+
+    # Your LAN/dev server you open on phone/emulator
+    "http://192.168.1.5:5175",  # Vite dev server UI
+    "http://192.168.1.5:5173",
+    "http://192.168.1.5:5174",
+    "http://192.168.1.5:5176",
+    "http://192.168.1.5:8000",  # (only if you ever hit backend directly from WebView)
+
+    # Android emulator aliases
+    "http://10.0.2.2:5173",
+    "http://10.0.2.2:5175",
+    "http://10.0.2.2:8000",
+
+    # Capacitor app
+    "capacitor://localhost",
+
+    # Production frontend
     "https://frontend-app-ten-opal.vercel.app",
-    "https://localhost",                        # Capacitor WebView origin
-    "capacitor://localhost",                    # Capacitor native scheme
-    "http://localhost",
-    "http://10.0.2.2:5173",                      # Android emulator -> host dev server
-    "http://192.168.1.5:5173"
+    # (add your custom domain if you point it to Vercel)
+    "https://www.neurocrest.in",
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
