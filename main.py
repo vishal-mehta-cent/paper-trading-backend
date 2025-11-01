@@ -67,7 +67,12 @@ origins = [
     "http://127.0.0.1:5173",
     "https://paper-trading-frontend.vercel.app",
     "https://www.neurocrest.in",
-    "https://frontend-app-ten-opal.vercel.app"
+    "https://frontend-app-ten-opal.vercel.app",
+    "https://localhost",                        # Capacitor WebView origin
+    "capacitor://localhost",                    # Capacitor native scheme
+    "http://localhost",
+    "http://10.0.2.2:5173",                      # Android emulator -> host dev server
+    "http://192.168.1.5:5173"
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -87,7 +92,7 @@ app.include_router(search_router)
 app.include_router(watchlist_router)
 app.include_router(quotes_router)
 app.include_router(portfolio_router)
-app.include_router(orders_router)
+app.include_router(orders_router
 # app.include_router(historical_router)
 app.include_router(google_auth_router)
 app.include_router(funds_router)
