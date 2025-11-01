@@ -81,6 +81,8 @@ ALLOWED_ORIGINS = [
 
     # Capacitor app
     "capacitor://localhost",
+    "https://paper-trading-frontend.vercel.app",
+    "https://localhost",
 
     # Production frontend
     "https://frontend-app-ten-opal.vercel.app",
