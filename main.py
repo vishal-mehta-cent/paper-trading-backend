@@ -67,6 +67,7 @@ origins = [
     "http://127.0.0.1:5173",
     "https://paper-trading-frontend.vercel.app",
     "https://www.neurocrest.in",
+    "https://frontend-app-ten-opal.vercel.app"
 ]
 app.add_middleware(
     CORSMiddleware,
